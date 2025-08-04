@@ -67,9 +67,9 @@ ALTER TABLE provider_services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ratings ENABLE ROW LEVEL SECURITY;
 
 -- تعریف Policy ها (قوانین دسترسی)
--- به همه اجازه خواندن خدمات و شهرها را بده
-CREATE POLICY "Public services are viewable by everyone." ON services FOR SELECT USING (true);
-CREATE POLICY "Public locations are viewable by everyone." ON locations FOR SELECT USING (true);
+-- به کاربران مهمان (`anon`) و وارد شده (`authenticated`) اجازه خواندن خدمات و شهرها را بده
+CREATE POLICY "Public services are viewable by everyone." ON services FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public locations are viewable by everyone." ON locations FOR SELECT TO anon, authenticated USING (true);
 
 -- به کاربران اجازه بده پروفایل خودشان را ببینند و ویرایش کنند
 CREATE POLICY "Users can view their own profile." ON profiles FOR SELECT USING (auth.uid() = id);

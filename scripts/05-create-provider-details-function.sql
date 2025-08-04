@@ -2,6 +2,7 @@
 CREATE OR REPLACE FUNCTION get_provider_details(provider_id_input UUID)
 RETURNS json
 LANGUAGE plpgsql
+SECURITY DEFINER
 AS $$
 DECLARE
     provider_profile json;
@@ -10,8 +11,14 @@ DECLARE
     provider_locations json;
     provider_ratings json;
 BEGIN
-    -- 1. اطلاعات اصلی پروفایل
-    SELECT to_jsonb(p) INTO provider_profile
+    -- 1. اطلاعات اصلی پروفایل (فقط فیلدهای عمومی)
+    SELECT json_build_object(
+        'id', p.id,
+        'first_name', p.first_name,
+        'last_name', p.last_name,
+        'is_provider', p.is_provider,
+        'avatar_url', p.avatar_url
+    ) INTO provider_profile
     FROM profiles p
     WHERE p.id = provider_id_input;
 

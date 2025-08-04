@@ -12,7 +12,7 @@ ALTER TABLE provider_locations ENABLE ROW LEVEL SECURITY;
 
 -- تعریف پالیسی‌ها
 -- به همه اجازه خواندن اطلاعات را بده
-CREATE POLICY "Public provider locations are viewable by everyone." ON provider_locations FOR SELECT USING (true);
+CREATE POLICY "Public provider locations are viewable by everyone." ON provider_locations FOR SELECT TO anon, authenticated USING (true);
 
 -- به متخصصان اجازه بده مناطق خدماتی خود را مدیریت کنند
 CREATE POLICY "Providers can manage their own service locations." ON provider_locations
