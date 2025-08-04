@@ -1,23 +1,13 @@
 import { Button } from "@/components/ui/button"
 import { Wrench, SprayCan, Stethoscope } from "lucide-react"
 import Link from "next/link"
-import { getServices, getLocations, testConnection } from "./data"
+import { getServices, getLocations } from "./data"
 import { LandingSearchForm } from "@/components/landing-search-form"
 
 export default async function LandingPage() {
-  console.log("Loading landing page...")
-
-  // تست اتصال به دیتابیس
-  const connectionTest = await testConnection()
-  console.log("Database connection test result:", connectionTest)
-
   try {
-    const [services, locations] = await Promise.all([getServices(), getLocations()])
-
-    console.log("Successfully loaded data:", {
-      servicesCount: services.length,
-      locationsCount: locations.length,
-    })
+    const services = await getServices()
+    const locations = await getLocations()
 
     return (
       <div className="flex flex-col min-h-screen bg-gray-50">
@@ -77,21 +67,12 @@ export default async function LandingPage() {
       </div>
     )
   } catch (error) {
-    console.error("Error loading page data:", error)
-
     return (
       <div className="flex flex-col min-h-screen bg-gray-50 items-center justify-center">
-        <div className="text-center p-8 max-w-md">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">خطا در اتصال به دیتابیس</h1>
-          <p className="text-gray-600 mb-4">امکان اتصال به دیتابیس وجود ندارد. لطفاً موارد زیر را بررسی کنید:</p>
-          <ul className="text-sm text-gray-500 text-right space-y-2 mb-6">
-            <li>• آیا جداول در دیتابیس ایجاد شده‌اند؟</li>
-            <li>• آیا URL و کلید Supabase صحیح هستند؟</li>
-            <li>• آیا دسترسی‌های لازم تنظیم شده‌اند؟</li>
-          </ul>
-          <div className="bg-gray-100 p-4 rounded text-xs text-left">
-            <strong>خطا:</strong> {error instanceof Error ? error.message : "نامشخص"}
-          </div>
+        <div className="text-center p-8">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">خطا در بارگذاری</h1>
+          <p className="text-gray-600 mb-4">لطفاً مطمئن شوید که متغیرهای محیطی Supabase به درستی تنظیم شده‌اند.</p>
+          <p className="text-sm text-gray-500">برای راهنمایی بیشتر، فایل README.md را مطالعه کنید.</p>
         </div>
       </div>
     )

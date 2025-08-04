@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,7 +15,7 @@ type LandingSearchFormProps = {
   locations: Location[]
 }
 
-export function LandingSearchForm({ services = [], locations = [] }: LandingSearchFormProps) {
+export function LandingSearchForm({ services, locations }: LandingSearchFormProps) {
   const router = useRouter()
   const [serviceId, setServiceId] = useState<string>("")
   const [locationId, setLocationId] = useState<string>("")
@@ -27,22 +26,6 @@ export function LandingSearchForm({ services = [], locations = [] }: LandingSear
     if (serviceId) params.set("serviceId", serviceId)
     if (locationId) params.set("locationId", locationId)
     router.push(`/search?${params.toString()}`)
-  }
-
-  // Show loading state if data is not available
-  if (!services || services.length === 0) {
-    return (
-      <Card className="mt-8 max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>جستجوی خدمات</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4">
-            <p>در حال بارگذاری...</p>
-          </div>
-        </CardContent>
-      </Card>
-    )
   }
 
   return (
@@ -62,12 +45,11 @@ export function LandingSearchForm({ services = [], locations = [] }: LandingSear
                 {services.map((service) => (
                   <SelectGroup key={service.id}>
                     <Label className="px-2 py-1.5 text-xs font-semibold">{service.name}</Label>
-                    {service.sub_services &&
-                      service.sub_services.map((sub) => (
-                        <SelectItem key={sub.id} value={String(sub.id)}>
-                          {sub.name}
-                        </SelectItem>
-                      ))}
+                    {service.sub_services.map((sub) => (
+                      <SelectItem key={sub.id} value={String(sub.id)}>
+                        {sub.name}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 ))}
               </SelectContent>

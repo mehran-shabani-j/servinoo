@@ -1,109 +1,139 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Star, MapPin } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getServices, getLocations, getProviders, type ProviderSearchResult } from "../data"
+import { Suspense } from "react"
+import { searchProviders, getServices, getLocations } from "@/app/data"
 import { SearchFilters } from "@/components/search-filters"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Star, MapPin, Phone } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
-function ProviderCard({ provider }: { provider: ProviderSearchResult }) {
-  const rating = Math.round(provider.avg_rating * 2) / 2 // Round to nearest 0.5
+type SearchPageProps = {
+  searchParams: {
+    serviceId?: string
+    locationId?: string
+    query?: string
+  }
+}
+
+async function SearchResults({ searchParams }: SearchPageProps) {
+  const providers = await searchProviders(searchParams.serviceId, searchParams.locationId, searchParams.query)
+
+  if (providers.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">هیچ متخصصی یافت نشد</h3>
+        <p className="text-gray-600">لطفاً فیلترهای جستجو را تغییر دهید و دوباره تلاش کنید.</p>
+      </div>
+    )
+  }
 
   return (
-    <Card
-      className={`transition-shadow hover:shadow-lg ${provider.is_sponsored ? "border-2 border-yellow-400 bg-yellow-50" : ""}`}
-    >
-      <CardContent className="p-4 flex items-start space-x-4 space-x-reverse">
-        <Avatar className="w-16 h-16 border">
-          <AvatarImage
-            src={provider.avatar_url || `/placeholder.svg?height=64&width=64&query=professional+${provider.first_name}`}
-          />
-          <AvatarFallback>{provider.first_name.charAt(0)}</AvatarFallback>
-        </Avatar>
-        <div className="flex-grow">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-bold">{`${provider.first_name} ${provider.last_name}`}</h3>
-            {provider.is_sponsored && (
-              <div className="text-xs font-bold text-yellow-600 bg-yellow-200 px-2 py-1 rounded-full">آگهی ویژه</div>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground">{provider.service_name}</p>
-          <div className="flex items-center space-x-1 space-x-reverse mt-1">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`w-4 h-4 text-yellow-400 ${i < rating ? "fill-yellow-400" : "fill-transparent"}`}
-              />
-            ))}
-            <span className="text-sm font-medium mr-1">{provider.avg_rating.toFixed(1)}</span>
-            <span className="text-sm text-muted-foreground">({provider.rating_count} نظر)</span>
-          </div>
-          <div className="flex items-center text-sm text-muted-foreground mt-2">
-            <MapPin className="w-4 h-4 ml-1" /> {provider.city}
-          </div>
-        </div>
-        <div className="text-left">
-          <Button asChild>
-            <Link href={`/providers/${provider.id}`}>مشاهده پروفایل</Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {providers.map((provider) => (
+        <Card key={provider.id} className="hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3 space-x-reverse">
+                <div className="relative w-12 h-12">
+                  <Image
+                    src={provider.avatar_url || "/placeholder-user.jpg"}
+                    alt={`${provider.first_name} ${provider.last_name}`}
+                    fill
+                    className="rounded-full object-cover"
+                  />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">
+                    {provider.first_name} {provider.last_name}
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">{provider.service_name}</p>
+                </div>
+              </div>
+              {provider.is_sponsored && (
+                <Badge variant="secondary" className="text-xs">
+                  ویژه
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center text-sm text-gray-600">
+                <MapPin className="w-4 h-4 ml-1" />
+                <span>
+                  {provider.city}, {provider.province}
+                </span>
+              </div>
+
+              <div className="flex items-center">
+                <Star className="w-4 h-4 text-yellow-400 fill-current ml-1" />
+                <span className="text-sm font-medium">{provider.avg_rating.toFixed(1)}</span>
+                <span className="text-sm text-gray-600 mr-1">({provider.rating_count} نظر)</span>
+              </div>
+
+              <div className="flex space-x-2 space-x-reverse pt-3">
+                <Button asChild size="sm" className="flex-1">
+                  <Link href={`/providers/${provider.id}`}>مشاهده پروفایل</Link>
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Phone className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   )
 }
 
-export default async function SearchPage({
-  searchParams,
-}: {
-  searchParams?: {
-    serviceId?: string
-    locationId?: string
-    price?: string
-  }
-}) {
-  try {
-    const services = await getServices()
-    const locations = await getLocations()
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const [services, locations] = await Promise.all([getServices(), getLocations()])
 
-    const serviceId = searchParams?.serviceId ? Number.parseInt(searchParams.serviceId) : undefined
-    const locationId = searchParams?.locationId ? Number.parseInt(searchParams.locationId) : undefined
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">جستجوی متخصصان</h1>
+          <SearchFilters
+            services={services}
+            locations={locations}
+            initialServiceId={searchParams.serviceId}
+            initialLocationId={searchParams.locationId}
+            initialQuery={searchParams.query}
+          />
+        </div>
 
-    const providers = await getProviders({ serviceId, locationId })
-
-    return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <aside className="md:col-span-1">
-            <SearchFilters services={services} locations={locations} />
-          </aside>
-
-          <main className="md:col-span-3">
-            <h1 className="text-3xl font-bold mb-6">
-              {providers.length > 0 ? `${providers.length} ارائه‌دهنده خدمت یافت شد` : "نتیجه‌ای یافت نشد"}
-            </h1>
-            <div className="space-y-4">
-              {providers.length > 0 ? (
-                providers.map((provider) => <ProviderCard key={provider.id} provider={provider} />)
-              ) : (
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <p>هیچ متخصصی با فیلترهای انتخابی شما یافت نشد. لطفاً فیلترها را تغییر دهید.</p>
+        <Suspense
+          fallback={
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardHeader>
+                    <div className="flex items-center space-x-3 space-x-reverse">
+                      <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        <div className="h-3 bg-gray-200 rounded w-16"></div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="h-3 bg-gray-200 rounded w-20"></div>
+                      <div className="h-3 bg-gray-200 rounded w-16"></div>
+                      <div className="h-8 bg-gray-200 rounded"></div>
+                    </div>
                   </CardContent>
                 </Card>
-              )}
+              ))}
             </div>
-          </main>
-        </div>
+          }
+        >
+          <SearchResults searchParams={searchParams} />
+        </Suspense>
       </div>
-    )
-  } catch (error) {
-    return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">خطا در بارگذاری</h1>
-          <p className="text-gray-600">مشکلی در دریافت اطلاعات پیش آمده است.</p>
-        </div>
-      </div>
-    )
-  }
+    </div>
+  )
 }
