@@ -4,34 +4,59 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Search } from "lucide-react"
 import type { ServiceWithSubServices, Location } from "@/app/data"
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 
 type SearchFiltersProps = {
   services: ServiceWithSubServices[]
   locations: Location[]
+  initialServiceId?: string
+  initialLocationId?: string
+  initialQuery?: string
 }
 
-export function SearchFilters({ services, locations }: SearchFiltersProps) {
+export function SearchFilters({
+  services,
+  locations,
+  initialServiceId,
+  initialLocationId,
+  initialQuery,
+}: SearchFiltersProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
+  const [serviceId, setServiceId] = useState(initialServiceId || "")
+  const [locationId, setLocationId] = useState(initialLocationId || "")
+  const [query, setQuery] = useState(initialQuery || "")
+
   const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString())
-      if (value && value !== "all") {
-        params.set(name, value)
-      } else {
-        params.delete(name)
-      }
-      return params.toString()
+    (params: Record<string, string>) => {
+      const newSearchParams = new URLSearchParams(searchParams.toString())
+
+      Object.entries(params).forEach(([name, value]) => {
+        if (value && value !== "all") {
+          newSearchParams.set(name, value)
+        } else {
+          newSearchParams.delete(name)
+        }
+      })
+
+      return newSearchParams.toString()
     },
     [searchParams],
   )
 
-  const handleFilterChange = (filterName: string, value: string) => {
-    router.push(pathname + "?" + createQueryString(filterName, value))
+  const handleSearch = () => {
+    const queryString = createQueryString({
+      serviceId,
+      locationId,
+      query,
+    })
+    router.push(pathname + "?" + queryString)
   }
 
   return (
@@ -42,10 +67,7 @@ export function SearchFilters({ services, locations }: SearchFiltersProps) {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="service-type">نوع خدمت</Label>
-          <Select
-            defaultValue={searchParams.get("serviceId") || "all"}
-            onValueChange={(value) => handleFilterChange("serviceId", value)}
-          >
+          <Select value={serviceId} onValueChange={setServiceId}>
             <SelectTrigger id="service-type">
               <SelectValue placeholder="همه‌ی خدمات" />
             </SelectTrigger>
@@ -64,12 +86,10 @@ export function SearchFilters({ services, locations }: SearchFiltersProps) {
             </SelectContent>
           </Select>
         </div>
+
         <div className="space-y-2">
           <Label htmlFor="city">شهر</Label>
-          <Select
-            defaultValue={searchParams.get("locationId") || "all"}
-            onValueChange={(value) => handleFilterChange("locationId", value)}
-          >
+          <Select value={locationId} onValueChange={setLocationId}>
             <SelectTrigger id="city">
               <SelectValue placeholder="همه‌ی شهرها" />
             </SelectTrigger>
@@ -77,13 +97,29 @@ export function SearchFilters({ services, locations }: SearchFiltersProps) {
               <SelectItem value="all">همه‌ی شهرها</SelectItem>
               {locations.map((loc) => (
                 <SelectItem key={loc.id} value={String(loc.id)}>
-                  {loc.city}
+                  {loc.city} ({loc.province})
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        {/* Price filter can be added here later */}
+
+        <div className="space-y-2">
+          <Label htmlFor="search-query">جستجو</Label>
+          <div className="flex gap-2">
+            <Input
+              id="search-query"
+              placeholder="نام متخصص یا خدمت..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="text-right"
+              dir="rtl"
+            />
+            <Button onClick={handleSearch}>
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )

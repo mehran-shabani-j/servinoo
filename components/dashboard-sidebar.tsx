@@ -15,17 +15,17 @@ import { LayoutDashboard, User, LogOut, Briefcase, History } from "lucide-react"
 import Link from "next/link"
 import type { Profile } from "@/app/data"
 
-export function AppSidebar({ profile }: { profile: Profile }) {
+export function DashboardSidebar({ profile }: { profile: Profile }) {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center space-x-3 p-2" dir="rtl">
+        <div className="flex items-center space-x-3 p-2">
           <Avatar>
             <AvatarImage src={profile.avatar_url || "/placeholder.svg?height=40&width=40"} alt="User avatar" />
             <AvatarFallback>{profile.first_name?.charAt(0) || "U"}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-semibold text-sm">{`${profile.first_name} ${profile.last_name}`}</span>
+            <span className="font-semibold text-sm">{`${profile.first_name || ""} ${profile.last_name || ""}`}</span>
             <span className="text-xs text-muted-foreground">{profile.email}</span>
           </div>
         </div>
@@ -37,7 +37,7 @@ export function AppSidebar({ profile }: { profile: Profile }) {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/dashboard">
-                    <LayoutDashboard className="ml-2" />
+                    <LayoutDashboard className="mr-2" />
                     <span>داشبورد</span>
                   </Link>
                 </SidebarMenuButton>
@@ -45,7 +45,7 @@ export function AppSidebar({ profile }: { profile: Profile }) {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/dashboard/profile">
-                    <User className="ml-2" />
+                    <User className="mr-2" />
                     <span>پروفایل</span>
                   </Link>
                 </SidebarMenuButton>
@@ -53,7 +53,7 @@ export function AppSidebar({ profile }: { profile: Profile }) {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/dashboard/history">
-                    <History className="ml-2" />
+                    <History className="mr-2" />
                     <span>تاریخچه خدمات</span>
                   </Link>
                 </SidebarMenuButton>
@@ -70,7 +70,7 @@ export function AppSidebar({ profile }: { profile: Profile }) {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link href="/dashboard/services">
-                      <Briefcase className="ml-2" />
+                      <Briefcase className="mr-2" />
                       <span>خدمات من</span>
                     </Link>
                   </SidebarMenuButton>
@@ -84,7 +84,7 @@ export function AppSidebar({ profile }: { profile: Profile }) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton>
-              <LogOut className="ml-2" />
+              <LogOut className="mr-2" />
               <span>خروج</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
