@@ -21,75 +21,76 @@ export type Location = {
   city: string
 }
 
-// Mock data for fallback when database is not available
-const mockServices: ServiceWithSubServices[] = [
-  {
-    id: 1,
-    name: "خدمات منزل",
-    sub_services: [
-      { id: 11, name: "تعمیرات لوازم خانگی", description: null, parent_id: 1 },
-      { id: 12, name: "نظافت منزل", description: null, parent_id: 1 },
-      { id: 13, name: "باغبانی", description: null, parent_id: 1 },
-    ],
-  },
-  {
-    id: 2,
-    name: "خدمات آموزشی",
-    sub_services: [
-      { id: 21, name: "تدریس خصوصی", description: null, parent_id: 2 },
-      { id: 22, name: "آموزش زبان", description: null, parent_id: 2 },
-      { id: 23, name: "آموزش موسیقی", description: null, parent_id: 2 },
-    ],
-  },
-  {
-    id: 3,
-    name: "خدمات پزشکی",
-    sub_services: [
-      { id: 31, name: "پرستاری", description: null, parent_id: 3 },
-      { id: 32, name: "فیزیوتراپی", description: null, parent_id: 3 },
-    ],
-  },
-]
+// تابعی برای تست اتصال به دیتابیس
+export async function testConnection() {
+  try {
+    const supabase = createClient()
+    console.log("Testing database connection...")
 
-const mockLocations: Location[] = [
-  { id: 1, province: "تهران", city: "تهران" },
-  { id: 2, province: "تهران", city: "کرج" },
-  { id: 3, province: "تهران", city: "ورامین" },
-  { id: 4, province: "اصفهان", city: "اصفهان" },
-  { id: 5, province: "اصفهان", city: "کاشان" },
-  { id: 6, province: "فارس", city: "شیراز" },
-  { id: 7, province: "فارس", city: "مرودشت" },
-  { id: 8, province: "خراسان رضوی", city: "مشهد" },
-]
+    const { data, error } = await supabase.from("services").select("count", { count: "exact", head: true })
+
+    if (error) {
+      console.error("Connection test failed:", error)
+      return false
+    }
+
+    console.log("Connection test successful, services count:", data)
+    return true
+  } catch (error) {
+    console.error("Connection test error:", error)
+    return false
+  }
+}
 
 // تابعی برای دریافت لیست خدمات به صورت ساختار درختی
 export async function getServices(): Promise<ServiceWithSubServices[]> {
   noStore()
 
+  console.log("Fetching services from database...")
+
   try {
     const supabase = createClient()
-    const { data, error } = await supabase.from("services").select("*")
+
+    // ابتدا تست کنیم که آیا جدول services وجود دارد
+    const { data: tableExists } = await supabase.from("services").select("id").limit(1)
+
+    console.log("Services table check result:", tableExists)
+
+    const { data, error } = await supabase.from("services").select("*").order("id")
 
     if (error) {
       console.error("Database Error (getServices):", error)
-      console.warn("Falling back to mock data")
-      return mockServices
+      console.error("Error details:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      })
+      throw new Error(`خطا در دریافت لیست خدمات: ${error.message}`)
     }
+
+    console.log("Raw services data:", data)
 
     const services: Service[] = data || []
 
     if (services.length === 0) {
-      console.warn("No services found in database, using mock data")
-      return mockServices
+      console.warn("No services found in database")
+      return []
     }
 
     const serviceMap = new Map<number, ServiceWithSubServices>()
     const rootServices: ServiceWithSubServices[] = []
 
+    // ابتدا همه سرویس‌ها را در map قرار می‌دهیم
     services.forEach((service) => {
-      serviceMap.set(service.id, { id: service.id, name: service.name, sub_services: [] })
+      serviceMap.set(service.id, {
+        id: service.id,
+        name: service.name,
+        sub_services: [],
+      })
     })
 
+    // سپس روابط والد-فرزند را برقرار می‌کنیم
     services.forEach((service) => {
       if (service.parent_id) {
         const parent = serviceMap.get(service.parent_id)
@@ -98,7 +99,7 @@ export async function getServices(): Promise<ServiceWithSubServices[]> {
           const subServiceToAdd: Service = {
             id: currentService.id,
             name: currentService.name,
-            description: null,
+            description: service.description,
             parent_id: service.parent_id,
           }
           parent.sub_services.push(subServiceToAdd)
@@ -111,11 +112,11 @@ export async function getServices(): Promise<ServiceWithSubServices[]> {
       }
     })
 
-    return rootServices.length > 0 ? rootServices : mockServices
+    console.log("Processed services:", rootServices)
+    return rootServices
   } catch (error) {
     console.error("Failed to fetch services:", error)
-    console.warn("Falling back to mock data")
-    return mockServices
+    throw error
   }
 }
 
@@ -123,21 +124,29 @@ export async function getServices(): Promise<ServiceWithSubServices[]> {
 export async function getLocations(): Promise<Location[]> {
   noStore()
 
+  console.log("Fetching locations from database...")
+
   try {
     const supabase = createClient()
+
     const { data, error } = await supabase.from("locations").select("*").order("province")
 
     if (error) {
       console.error("Database Error (getLocations):", error)
-      console.warn("Falling back to mock data")
-      return mockLocations
+      console.error("Error details:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      })
+      throw new Error(`خطا در دریافت لیست شهرها: ${error.message}`)
     }
 
-    return (data as Location[]) || mockLocations
+    console.log("Raw locations data:", data)
+    return (data as Location[]) || []
   } catch (error) {
     console.error("Failed to fetch locations:", error)
-    console.warn("Falling back to mock data")
-    return mockLocations
+    throw error
   }
 }
 
@@ -155,63 +164,14 @@ export type ProviderSearchResult = {
   is_sponsored: boolean
 }
 
-const mockProviders: ProviderSearchResult[] = [
-  {
-    id: "1",
-    first_name: "احمد",
-    last_name: "محمدی",
-    avatar_url: null,
-    service_name: "تعمیرات لوازم خانگی",
-    city: "تهران",
-    province: "تهران",
-    avg_rating: 4.5,
-    rating_count: 23,
-    is_sponsored: true,
-  },
-  {
-    id: "2",
-    first_name: "فاطمه",
-    last_name: "احمدی",
-    avatar_url: null,
-    service_name: "نظافت منزل",
-    city: "تهران",
-    province: "تهران",
-    avg_rating: 4.8,
-    rating_count: 45,
-    is_sponsored: false,
-  },
-  {
-    id: "3",
-    first_name: "علی",
-    last_name: "رضایی",
-    avatar_url: null,
-    service_name: "تدریس خصوصی",
-    city: "اصفهان",
-    province: "اصفهان",
-    avg_rating: 4.2,
-    rating_count: 18,
-    is_sponsored: false,
-  },
-  {
-    id: "4",
-    first_name: "مریم",
-    last_name: "کریمی",
-    avatar_url: null,
-    service_name: "آموزش زبان",
-    city: "شیراز",
-    province: "فارس",
-    avg_rating: 4.9,
-    rating_count: 67,
-    is_sponsored: true,
-  },
-]
-
 // تابعی برای جستجوی متخصصان با فیلترهای خاص
 export async function getProviders(filters: {
   serviceId?: number
   locationId?: number
 }): Promise<ProviderSearchResult[]> {
   noStore()
+
+  console.log("Searching providers with filters:", filters)
 
   try {
     const supabase = createClient()
@@ -223,15 +183,20 @@ export async function getProviders(filters: {
 
     if (error) {
       console.error("RPC Error (getProviders):", error)
-      console.warn("Falling back to mock data")
-      return mockProviders
+      console.error("Error details:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      })
+      throw new Error(`خطا در جستجوی متخصصان: ${error.message}`)
     }
 
-    return (data as ProviderSearchResult[]) || mockProviders
+    console.log("Providers search result:", data)
+    return (data as ProviderSearchResult[]) || []
   } catch (error) {
     console.error("Failed to search providers:", error)
-    console.warn("Falling back to mock data")
-    return mockProviders
+    throw error
   }
 }
 
@@ -268,6 +233,8 @@ export type ProviderProfileDetails = {
 export async function getProviderProfile(id: string): Promise<ProviderProfileDetails | null> {
   noStore()
 
+  console.log("Fetching provider profile for ID:", id)
+
   try {
     const supabase = createClient()
     const { data, error } = await supabase.rpc("get_provider_details", {
@@ -276,9 +243,16 @@ export async function getProviderProfile(id: string): Promise<ProviderProfileDet
 
     if (error) {
       console.error("RPC Error fetching provider details:", error)
+      console.error("Error details:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      })
       return null
     }
 
+    console.log("Provider profile result:", data)
     return data as ProviderProfileDetails
   } catch (error) {
     console.error("Failed to fetch provider profile:", error)
