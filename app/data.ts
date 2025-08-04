@@ -21,79 +21,63 @@ export type Location = {
   city: string
 }
 
-// Define a consistent response type for all data fetching functions
-type DataResponse<T> = {
-  data: T | null
-  error: string | null
-}
-
 // تابعی برای دریافت لیست خدمات به صورت ساختار درختی
-export async function getServices(): Promise<DataResponse<ServiceWithSubServices[]>> {
+export async function getServices(): Promise<ServiceWithSubServices[]> {
   noStore()
-  try {
-    const supabase = createClient()
-    const { data, error } = await supabase.from("services").select("*")
 
-    if (error) {
-      console.error("Database Error (getServices):", error)
-      throw new Error("خطا در دریافت لیست خدمات.")
-    }
+  const supabase = createClient()
+  const { data, error } = await supabase.from("services").select("*")
 
-    const services: Service[] = data || []
-    const serviceMap = new Map<number, ServiceWithSubServices>()
-    const rootServices: ServiceWithSubServices[] = []
-
-    services.forEach((service) => {
-      serviceMap.set(service.id, { id: service.id, name: service.name, sub_services: [] })
-    })
-
-    services.forEach((service) => {
-      if (service.parent_id) {
-        const parent = serviceMap.get(service.parent_id)
-        const currentService = serviceMap.get(service.id)
-        if (parent && currentService) {
-          const subServiceToAdd: Service = {
-            id: currentService.id,
-            name: currentService.name,
-            description: null,
-            parent_id: service.parent_id,
-          }
-          parent.sub_services.push(subServiceToAdd)
-        }
-      } else {
-        const rootService = serviceMap.get(service.id)
-        if (rootService) {
-          rootServices.push(rootService)
-        }
-      }
-    })
-
-    return { data: rootServices, error: null }
-  } catch (e) {
-    const error = e as Error
-    console.error("Caught Exception in getServices:", error.message)
-    return { data: null, error: error.message }
+  if (error) {
+    console.error("Database Error (getServices):", error)
+    throw new Error("خطا در دریافت لیست خدمات.")
   }
+
+  const services: Service[] = data || []
+  const serviceMap = new Map<number, ServiceWithSubServices>()
+  const rootServices: ServiceWithSubServices[] = []
+
+  services.forEach((service) => {
+    serviceMap.set(service.id, { id: service.id, name: service.name, sub_services: [] })
+  })
+
+  services.forEach((service) => {
+    if (service.parent_id) {
+      const parent = serviceMap.get(service.parent_id)
+      const currentService = serviceMap.get(service.id)
+      if (parent && currentService) {
+        const subServiceToAdd: Service = {
+          id: currentService.id,
+          name: currentService.name,
+          description: null,
+          parent_id: service.parent_id,
+        }
+        parent.sub_services.push(subServiceToAdd)
+      }
+    } else {
+      const rootService = serviceMap.get(service.id)
+      if (rootService) {
+        rootServices.push(rootService)
+      }
+    }
+  })
+
+  return rootServices
 }
 
 // تابعی برای دریافت لیست تمام شهرها و استان‌ها
-export async function getLocations(): Promise<DataResponse<Location[]>> {
+export async function getLocations(): Promise<Location[]> {
   noStore()
-  try {
-    const supabase = createClient()
-    const { data, error } = await supabase.from("locations").select("*").order("province")
 
-    if (error) {
-      console.error("Database Error (getLocations):", error)
-      throw new Error("خطا در دریافت لیست شهرها.")
-    }
+  const supabase = createClient()
+  const { data, error } = await supabase.from("locations").select("*").order("province")
 
-    return { data: (data as Location[]) || [], error: null }
-  } catch (e) {
-    const error = e as Error
-    console.error("Caught Exception in getLocations:", error.message)
-    return { data: null, error: error.message }
+  if (error) {
+    console.error("Database Error (getLocations):", error)
+    throw new Error("خطا در دریافت لیست شهرها.")
   }
+
+  return (data as Location[]) || []
 }
 
 // نوع جستجوی متخصصان
@@ -114,27 +98,22 @@ export type ProviderSearchResult = {
 export async function getProviders(filters: {
   serviceId?: number
   locationId?: number
-}): Promise<DataResponse<ProviderSearchResult[]>> {
+}): Promise<ProviderSearchResult[]> {
   noStore()
-  try {
-    const supabase = createClient()
 
-    const { data, error } = await supabase.rpc("search_providers", {
-      service_id_filter: filters.serviceId || null,
-      location_id_filter: filters.locationId || null,
-    })
+  const supabase = createClient()
 
-    if (error) {
-      console.error("RPC Error (getProviders):", error)
-      throw new Error("خطا در جستجوی متخصصان.")
-    }
+  const { data, error } = await supabase.rpc("search_providers", {
+    service_id_filter: filters.serviceId || null,
+    location_id_filter: filters.locationId || null,
+  })
 
-    return { data: (data as ProviderSearchResult[]) || [], error: null }
-  } catch (e) {
-    const error = e as Error
-    console.error("Caught Exception in getProviders:", error.message)
-    return { data: null, error: error.message }
+  if (error) {
+    console.error("RPC Error (getProviders):", error)
+    throw new Error("خطا در جستجوی متخصصان.")
   }
+
+  return (data as ProviderSearchResult[]) || []
 }
 
 // نوع Profile
@@ -167,23 +146,18 @@ export type ProviderProfileDetails = {
 }
 
 // تابع جدید برای دریافت اطلاعات کامل پروفایل یک متخصص
-export async function getProviderProfile(id: string): Promise<DataResponse<ProviderProfileDetails>> {
+export async function getProviderProfile(id: string): Promise<ProviderProfileDetails | null> {
   noStore()
-  try {
-    const supabase = createClient()
-    const { data, error } = await supabase.rpc("get_provider_details", {
-      provider_id_input: id,
-    })
 
-    if (error) {
-      console.error("RPC Error fetching provider details:", error)
-      return { data: null, error: "متخصص مورد نظر یافت نشد." }
-    }
+  const supabase = createClient()
+  const { data, error } = await supabase.rpc("get_provider_details", {
+    provider_id_input: id,
+  })
 
-    return { data: data as ProviderProfileDetails, error: null }
-  } catch (e) {
-    const error = e as Error
-    console.error("Caught Exception in getProviderProfile:", error.message)
-    return { data: null, error: error.message }
+  if (error) {
+    console.error("RPC Error fetching provider details:", error)
+    return null
   }
+
+  return data as ProviderProfileDetails
 }

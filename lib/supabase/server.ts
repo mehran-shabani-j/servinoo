@@ -7,11 +7,9 @@ export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // این بررسی ضروری است. کد به درستی تشخیص می‌دهد که متغیرهای محیطی
-  // لازم برای اتصال به دیتابیس وجود ندارند.
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      "متغیرهای محیطی Supabase (URL و Anon Key) تعریف نشده‌اند. لطفاً به بخش Settings > Integrations در پروژه Vercel خود بروید و مطمئن شوید که Supabase به درستی متصل شده است.",
+      "متغیرهای محیطی Supabase تعریف نشده‌اند. لطفاً NEXT_PUBLIC_SUPABASE_URL و NEXT_PUBLIC_SUPABASE_ANON_KEY را تنظیم کنید.",
     )
   }
 

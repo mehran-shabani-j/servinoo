@@ -12,8 +12,15 @@ export function ConfigurationError({ error }: { error: string }) {
           <strong>Error Message:</strong> {error}
         </p>
         <p className="mt-2">
-          <strong>راه حل:</strong> به بخش <strong>Settings &gt; Integrations</strong> در پروژه Vercel خود بروید و مطمئن
-          شوید که Supabase به درستی متصل شده است. گاهی اوقات قطع و وصل مجدد اتصال، مشکل را حل می‌کند.
+          <strong>راه حل:</strong> به بخش <strong>Settings &gt; Environment Variables</strong> در پروژه Vercel خود بروید
+          و متغیرهای زیر را تنظیم کنید:
+        </p>
+        <pre className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded overflow-x-auto text-xs">
+          NEXT_PUBLIC_SUPABASE_URL=https://your-project-url.supabase.co{"\n"}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+        </pre>
+        <p className="mt-2">
+          این مقادیر را می‌توانید از پنل Supabase خود در بخش <strong>Settings &gt; API</strong> پیدا کنید.
         </p>
       </AlertDescription>
     </Alert>

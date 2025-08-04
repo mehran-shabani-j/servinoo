@@ -46,7 +46,6 @@ function ProviderCard({ provider }: { provider: ProviderSearchResult }) {
           <Button asChild>
             <Link href={`/providers/${provider.id}`}>مشاهده پروفایل</Link>
           </Button>
-          {/* Price info can be added later */}
         </div>
       </CardContent>
     </Card>
@@ -62,38 +61,49 @@ export default async function SearchPage({
     price?: string
   }
 }) {
-  const services = await getServices()
-  const locations = await getLocations()
+  try {
+    const services = await getServices()
+    const locations = await getLocations()
 
-  const serviceId = searchParams?.serviceId ? Number.parseInt(searchParams.serviceId) : undefined
-  const locationId = searchParams?.locationId ? Number.parseInt(searchParams.locationId) : undefined
+    const serviceId = searchParams?.serviceId ? Number.parseInt(searchParams.serviceId) : undefined
+    const locationId = searchParams?.locationId ? Number.parseInt(searchParams.locationId) : undefined
 
-  const providers = await getProviders({ serviceId, locationId })
+    const providers = await getProviders({ serviceId, locationId })
 
-  return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <aside className="md:col-span-1">
-          <SearchFilters services={services} locations={locations} />
-        </aside>
+    return (
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <aside className="md:col-span-1">
+            <SearchFilters services={services} locations={locations} />
+          </aside>
 
-        <main className="md:col-span-3">
-          <h1 className="text-3xl font-bold mb-6">
-            {providers.length > 0 ? `${providers.length} ارائه‌دهنده خدمت یافت شد` : "نتیجه‌ای یافت نشد"}
-          </h1>
-          <div className="space-y-4">
-            {providers.length > 0 ? (
-              providers.map((provider) => <ProviderCard key={provider.id} provider={provider} />)
-            ) : (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <p>هیچ متخصصی با فیلترهای انتخابی شما یافت نشد. لطفاً فیلترها را تغییر دهید.</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </main>
+          <main className="md:col-span-3">
+            <h1 className="text-3xl font-bold mb-6">
+              {providers.length > 0 ? `${providers.length} ارائه‌دهنده خدمت یافت شد` : "نتیجه‌ای یافت نشد"}
+            </h1>
+            <div className="space-y-4">
+              {providers.length > 0 ? (
+                providers.map((provider) => <ProviderCard key={provider.id} provider={provider} />)
+              ) : (
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <p>هیچ متخصصی با فیلترهای انتخابی شما یافت نشد. لطفاً فیلترها را تغییر دهید.</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
-  )
+    )
+  } catch (error) {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">خطا در بارگذاری</h1>
+          <p className="text-gray-600">مشکلی در دریافت اطلاعات پیش آمده است.</p>
+        </div>
+      </div>
+    )
+  }
 }
