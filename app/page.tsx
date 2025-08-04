@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Wrench, SprayCan, Stethoscope } from "lucide-react"
+import { Wrench, SprayCan, Stethoscope } from "lucide-react"
 import Link from "next/link"
+import { getServices, getLocations } from "./data"
+import { LandingSearchForm } from "@/components/landing-search-form"
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const services = await getServices()
+  const locations = await getLocations()
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
@@ -28,47 +30,7 @@ export default function LandingPage() {
           <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
             از تعمیرات و نظافت تا خدمات پرستاری، با متخصصان معتمد شهر خود در ارتباط باشید.
           </p>
-          <Card className="mt-8 max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle>جستجوی خدمات</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-2 text-left">
-                  <Label htmlFor="service-type">نوع خدمت</Label>
-                  <Select>
-                    <SelectTrigger id="service-type">
-                      <SelectValue placeholder="انتخاب نوع خدمت" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="repair">تعمیرکار</SelectItem>
-                      <SelectItem value="cleaning">نظافتچی</SelectItem>
-                      <SelectItem value="nursing">پرستار</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2 text-left">
-                  <Label htmlFor="city">شهر</Label>
-                  <Select>
-                    <SelectTrigger id="city">
-                      <SelectValue placeholder="شهر خود را انتخاب کنید" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* TODO: Populate with provinces and cities from the server */}
-                      <SelectItem value="tehran">تهران</SelectItem>
-                      <SelectItem value="shiraz">شیراز</SelectItem>
-                      <SelectItem value="isfahan">اصفهان</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="sm:col-span-3 flex justify-end">
-                  <Button type="submit" className="w-full sm:w-auto mt-2">
-                    <Search className="ml-2 h-4 w-4" /> جستجو
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+          <LandingSearchForm services={services} locations={locations} />
         </section>
 
         <section className="w-full bg-white py-12 md:py-20">

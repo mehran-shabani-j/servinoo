@@ -1,51 +1,44 @@
 "use client"
 
 import type React from "react"
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { useSearchParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
+import { useEffect, useState, useTransition } from "react"
+import { verifyOtp } from "./actions"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function VerifyOtpPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const phone = searchParams.get("phone")
+  const { toast } = useToast()
   const [otp, setOtp] = useState("")
-
-  useEffect(() => {
-    if ("OTPCredential" in window) {
-      const ac = new AbortController()
-      navigator.credentials
-        .get({
-          otp: { transport: ["sms"] },
-          signal: ac.signal,
-        })
-        .then((otpCredential) => {
-          if (otpCredential) {
-            setOtp(otpCredential.code)
-            // Automatically submit the form
-            // TODO: Implement server action to verify OTP
-            console.log("Auto-submitting OTP:", otpCredential.code)
-            router.push("/complete-profile")
-          }
-        })
-        .catch((err) => {
-          console.error(err)
-        })
-      return () => ac.abort()
-    }
-  }, [router])
+  const [isPending, startTransition] = useTransition()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement server action to verify OTP
-    console.log("Verifying OTP:", otp)
-    // On success, check if user is new or existing.
-    // If new, redirect to complete-profile. If existing, redirect to dashboard.
-    router.push("/complete-profile")
+    if (!phone || otp.length < 5) return
+
+    startTransition(async () => {
+      const result = await verifyOtp(phone, otp)
+      if (result && !result.success) {
+        toast({ title: "خطا", description: result.message, variant: "destructive" })
+      }
+    })
   }
+
+  // Auto-submit when OTP is filled
+  useEffect(() => {
+    if (otp.length === 5 && phone) {
+      startTransition(async () => {
+        const result = await verifyOtp(phone, otp)
+        if (result && !result.success) {
+          toast({ title: "خطا", description: result.message, variant: "destructive" })
+        }
+      })
+    }
+  }, [otp, phone, toast])
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -56,7 +49,7 @@ export default function VerifyOtpPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6 flex flex-col items-center">
-            <InputOTP maxLength={5} value={otp} onChange={setOtp}>
+            <InputOTP maxLength={5} value={otp} onChange={setOtp} dir="ltr">
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
                 <InputOTPSlot index={1} />
@@ -65,8 +58,8 @@ export default function VerifyOtpPage() {
                 <InputOTPSlot index={4} />
               </InputOTPGroup>
             </InputOTP>
-            <Button type="submit" className="w-full">
-              تایید
+            <Button type="submit" className="w-full" disabled={isPending || otp.length < 5}>
+              {isPending ? "در حال بررسی..." : "تایید"}
             </Button>
           </form>
         </CardContent>

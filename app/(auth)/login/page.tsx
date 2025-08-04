@@ -1,24 +1,33 @@
 "use client"
 
 import type React from "react"
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useTransition } from "react"
+import { sendOtp } from "./actions"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [phoneNumber, setPhoneNumber] = useState("")
+  const [isPending, startTransition] = useTransition()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement server action to send OTP
-    console.log("Sending OTP to:", phoneNumber)
-    // On success, navigate to the OTP verification page
-    router.push(`/verify-otp?phone=${phoneNumber}`)
+    startTransition(async () => {
+      // نکته: شماره موبایل باید با فرمت بین‌المللی باشد e.g., +989123456789
+      const result = await sendOtp(phoneNumber)
+      if (result.success) {
+        toast({ title: "موفقیت", description: result.message })
+        router.push(`/verify-otp?phone=${phoneNumber}`)
+      } else {
+        toast({ title: "خطا", description: result.message, variant: "destructive" })
+      }
+    })
   }
 
   return (
@@ -35,14 +44,16 @@ export default function LoginPage() {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+                name="phone"
+                placeholder="+989123456789"
                 required
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
+                dir="ltr"
               />
             </div>
-            <Button type="submit" className="w-full">
-              ارسال کد
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "در حال ارسال..." : "ارسال کد"}
             </Button>
           </form>
         </CardContent>
