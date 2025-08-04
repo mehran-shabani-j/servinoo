@@ -1,87 +1,106 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
-export default async function DashboardPage() {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/login")
-  }
-
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-  if (!profile) {
-    redirect("/complete-profile")
-  }
-
+export default function Dashboard() {
   return (
-    <div className="grid gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>خوش آمدید، {profile.first_name}!</CardTitle>
-          <CardDescription>خلاصه‌ای از وضعیت حساب کاربری شما.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p>شما می‌توانید پروفایل خود را مدیریت کرده و تاریخچه خدماتتان را از منوی کنار مشاهده کنید.</p>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">داشبورد</h1>
+        <p className="text-muted-foreground">خوش آمدید به پنل کاربری سرویسو</p>
+      </div>
 
-      {profile.is_provider ? (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle>داشبورد متخصص</CardTitle>
-            <CardDescription>خدمات، قیمت‌گذاری و درآمدهای خود را مدیریت کنید.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h3 className="font-semibold">اطلاعات تسویه حساب</h3>
-              <p className="text-sm text-muted-foreground">
-                لطفاً برای دریافت وجه، اطلاعات بانکی خود را به‌روز نگه دارید.
-              </p>
-              {/* 
-                TODO: Implement proper 16-17 digit IBAN (Sheba) validation as per banking standards.
-                This is a placeholder for where the provider would input their payout details.
-              */}
-              <div className="mt-2 p-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
-                <p className="font-bold">نکته در مورد اعتبارسنجی شماره شبا:</p>
-                <p>منطق اعتبارسنجی شماره شبای ۱۶ تا ۱۷ رقمی باید بررسی و پیاده‌سازی شود.</p>
-              </div>
-            </div>
-            <Button asChild>
-              <Link href="/dashboard/services">مدیریت خدمات من</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>متخصص شوید</CardTitle>
-            <CardDescription>آیا می‌خواهید خدمات خود را در سروینو ارائه دهید؟ همین امروز شروع کنید.</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">درخواست‌های جدید</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button asChild>
-              <Link href="/dashboard/profile">رفتن به تنظیمات پروفایل</Link>
-            </Button>
+            <div className="text-2xl font-bold">12</div>
+            <p className="text-xs text-muted-foreground">+2 از هفته گذشته</p>
           </CardContent>
         </Card>
-      )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>سیستم پرداخت</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground mb-4">پرداخت‌ها به صورت امن از طریق پلتفرم ما انجام می‌شود.</p>
-          {/* TODO: This is a placeholder for the BitPay integration. */}
-          <Button disabled>پرداخت با بیت‌پی (در انتظار پیاده‌سازی)</Button>
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">پروژه‌های فعال</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">5</div>
+            <p className="text-xs text-muted-foreground">+1 از هفته گذشته</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">امتیاز کلی</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">4.8</div>
+            <p className="text-xs text-muted-foreground">از 23 نظر</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">درآمد این ماه</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">2,450,000</div>
+            <p className="text-xs text-muted-foreground">تومان</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>درخواست‌های اخیر</CardTitle>
+            <CardDescription>آخرین درخواست‌های دریافت شده</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">تعمیر یخچال</p>
+                <p className="text-sm text-muted-foreground">تهران، پونک</p>
+              </div>
+              <Badge>جدید</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">نظافت منزل</p>
+                <p className="text-sm text-muted-foreground">تهران، ونک</p>
+              </div>
+              <Badge variant="secondary">در انتظار</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">تدریس ریاضی</p>
+                <p className="text-sm text-muted-foreground">تهران، سعادت آباد</p>
+              </div>
+              <Badge variant="outline">تایید شده</Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>پیام‌های جدید</CardTitle>
+            <CardDescription>آخرین پیام‌های دریافت شده</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <p className="font-medium">احمد محمدی</p>
+              <p className="text-sm text-muted-foreground">سلام، چه زمانی می‌تونید برای تعمیر یخچال بیاید؟</p>
+              <p className="text-xs text-muted-foreground">2 ساعت پیش</p>
+            </div>
+            <div className="space-y-2">
+              <p className="font-medium">فاطمه احمدی</p>
+              <p className="text-sm text-muted-foreground">ممنون از خدمات عالی‌تون. امتیاز کامل دادم.</p>
+              <p className="text-xs text-muted-foreground">5 ساعت پیش</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

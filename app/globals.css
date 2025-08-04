@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -119,5 +119,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: "Vazirmatn", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   }
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
 }
