@@ -1,6 +1,15 @@
 import { createBrowserClient } from "@supabase/ssr"
 
 export function createClient() {
-  // نکته: این متغیرها باید در محیط پروژه شما تعریف شوند.
-  return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  // این بررسی برای سمت کلاینت نیز ضروری است.
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error(
+      "متغیرهای محیطی Supabase (URL و Anon Key) در سمت کلاینت تعریف نشده‌اند. لطفاً تنظیمات پروژه Vercel خود را بررسی کنید.",
+    )
+  }
+
+  return createBrowserClient(supabaseUrl, supabaseKey)
 }

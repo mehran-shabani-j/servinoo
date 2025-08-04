@@ -4,6 +4,7 @@ import { Star, MapPin } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getServices, getLocations, getProviders, type ProviderSearchResult } from "../data"
 import { SearchFilters } from "@/components/search-filters"
+import Link from "next/link"
 
 function ProviderCard({ provider }: { provider: ProviderSearchResult }) {
   const rating = Math.round(provider.avg_rating * 2) / 2 // Round to nearest 0.5
@@ -42,7 +43,9 @@ function ProviderCard({ provider }: { provider: ProviderSearchResult }) {
           </div>
         </div>
         <div className="text-left">
-          <Button>مشاهده پروفایل</Button>
+          <Button asChild>
+            <Link href={`/providers/${provider.id}`}>مشاهده پروفایل</Link>
+          </Button>
           {/* Price info can be added later */}
         </div>
       </CardContent>

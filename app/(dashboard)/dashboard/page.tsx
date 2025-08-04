@@ -1,19 +1,30 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 
-// This is a placeholder. In a real app, you'd get this from user session.
-const user = {
-  name: "Jane Doe",
-  isProvider: true,
-}
+export default async function DashboardPage() {
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-export default function DashboardPage() {
+  if (!user) {
+    redirect("/login")
+  }
+
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+
+  if (!profile) {
+    redirect("/complete-profile")
+  }
+
   return (
     <div className="grid gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>خوش آمدید، {user.name}!</CardTitle>
+          <CardTitle>خوش آمدید، {profile.first_name}!</CardTitle>
           <CardDescription>خلاصه‌ای از وضعیت حساب کاربری شما.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -21,7 +32,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {user.isProvider ? (
+      {profile.is_provider ? (
         <Card>
           <CardHeader>
             <CardTitle>داشبورد متخصص</CardTitle>

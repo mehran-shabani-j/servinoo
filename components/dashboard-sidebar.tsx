@@ -1,5 +1,3 @@
-"use client"
-
 import {
   Sidebar,
   SidebarContent,
@@ -15,26 +13,20 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LayoutDashboard, User, LogOut, Briefcase, History } from "lucide-react"
 import Link from "next/link"
+import type { Profile } from "@/app/data"
 
-// This is a placeholder. In a real app, you'd get this from user session.
-const user = {
-  name: "Jane Doe",
-  email: "jane.doe@example.com",
-  isProvider: true, // Toggle this to see different menu items
-}
-
-export function AppSidebar() {
+export function AppSidebar({ profile }: { profile: Profile }) {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center space-x-3 p-2">
+        <div className="flex items-center space-x-3 p-2" dir="rtl">
           <Avatar>
-            <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User avatar" />
-            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={profile.avatar_url || "/placeholder.svg?height=40&width=40"} alt="User avatar" />
+            <AvatarFallback>{profile.first_name?.charAt(0) || "U"}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-semibold text-sm">{user.name}</span>
-            <span className="text-xs text-muted-foreground">{user.email}</span>
+            <span className="font-semibold text-sm">{`${profile.first_name} ${profile.last_name}`}</span>
+            <span className="text-xs text-muted-foreground">{profile.email}</span>
           </div>
         </div>
       </SidebarHeader>
@@ -70,7 +62,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {user.isProvider && (
+        {profile.is_provider && (
           <SidebarGroup>
             <SidebarGroupLabel>ابزارهای متخصص</SidebarGroupLabel>
             <SidebarGroupContent>

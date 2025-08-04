@@ -3,10 +3,13 @@ import { Wrench, SprayCan, Stethoscope } from "lucide-react"
 import Link from "next/link"
 import { getServices, getLocations } from "./data"
 import { LandingSearchForm } from "@/components/landing-search-form"
+import { ConfigurationError } from "@/components/configuration-error"
 
 export default async function LandingPage() {
-  const services = await getServices()
-  const locations = await getLocations()
+  const { data: services, error: servicesError } = await getServices()
+  const { data: locations, error: locationsError } = await getLocations()
+
+  const configError = servicesError || locationsError
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -30,7 +33,11 @@ export default async function LandingPage() {
           <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
             از تعمیرات و نظافت تا خدمات پرستاری، با متخصصان معتمد شهر خود در ارتباط باشید.
           </p>
-          <LandingSearchForm services={services} locations={locations} />
+          {configError ? (
+            <ConfigurationError error={configError} />
+          ) : (
+            <LandingSearchForm services={services || []} locations={locations || []} />
+          )}
         </section>
 
         <section className="w-full bg-white py-12 md:py-20">
