@@ -22,26 +22,19 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment || 'production' }}
-    permissions:
-      contents: read
-      deployments: write
-      issues: write
-      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: '**/pnpm-lock.yaml'
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: '8'
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
@@ -62,10 +55,9 @@ jobs:
           echo "DEPLOYMENT_URL=$(cat deployment_url.txt)" >> $GITHUB_OUTPUT
 
       - name: Add deployment comment to PR
-        if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const deploymentUrl = '${{ steps.deploy.outputs.DEPLOYMENT_URL }}';
             github.rest.issues.createComment({
@@ -79,7 +71,6 @@ jobs:
         if: always()
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const deploymentUrl = '${{ steps.deploy.outputs.DEPLOYMENT_URL }}';
             const status = '${{ job.status }}' === 'success' ? 'success' : 'failure';
