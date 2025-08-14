@@ -20,11 +20,39 @@ env:
 
 jobs:
   deploy:
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment || 'production' }}
+    env:
+      DEPLOY_ENV: ${{ github.event.inputs.environment || 'production' }}
+    outputs:
+      deployment_url: ${{ steps.deploy.outputs.DEPLOYMENT_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Create GitHub Deployment
+        id: create_deployment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const envName = '${{ env.DEPLOY_ENV }}';
+            const { data } = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: envName,
+              description: `Vercel ${envName} deployment`,
+              auto_merge: false,
+              required_contexts: [],
+              transient_environment: envName !== 'production',
+              production_environment: envName === 'production'
+            });
+            core.setOutput('deployment_id', String(data.id));
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -36,14 +64,21 @@ jobs:
         with:
           version: '8'
 
+      - name: Verify Vercel secrets
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ] || [ -z "${{ secrets.VERCEL_ORG_ID }}" ] || [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+            echo "Missing Vercel secrets. Please set VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID in repository secrets." >&2
+            exit 1
+          fi
+
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=${{ github.event.inputs.environment || 'production' }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ env.DEPLOY_ENV }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
-        run: vercel build ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build ${{ env.DEPLOY_ENV == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -51,13 +86,14 @@ jobs:
       - name: Deploy Project Artifacts to Vercel
         id: deploy
         run: |
-          vercel deploy ${{ github.event.inputs.environment == 'production' && '--prod' || '--prebuilt' }} --token=${{ secrets.VERCEL_TOKEN }} > deployment_url.txt
+          vercel deploy ${{ env.DEPLOY_ENV == 'production' && '--prod' || '--prebuilt' }} --token=${{ secrets.VERCEL_TOKEN }} > deployment_url.txt
           echo "DEPLOYMENT_URL=$(cat deployment_url.txt)" >> $GITHUB_OUTPUT
 
       - name: Add deployment comment to PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const deploymentUrl = '${{ steps.deploy.outputs.DEPLOYMENT_URL }}';
             github.rest.issues.createComment({
@@ -71,18 +107,26 @@ jobs:
         if: always()
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const deploymentUrl = '${{ steps.deploy.outputs.DEPLOYMENT_URL }}';
             const status = '${{ job.status }}' === 'success' ? 'success' : 'failure';
-            
-            github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: context.payload.deployment?.id || 'manual-deployment',
-              state: status,
-              target_url: deploymentUrl,
-              description: status === 'success' ? 'Deployment successful' : 'Deployment failed'
-            });
+            const deploymentId = '${{ steps.create_deployment.outputs.deployment_id }}';
+
+            if (!deploymentId) {
+              core.warning('No deployment ID found; skipping deployment status update.');
+            } else {
+              await github.rest.repos.createDeploymentStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                deployment_id: Number(deploymentId),
+                state: status,
+                target_url: deploymentUrl,
+                environment_url: deploymentUrl,
+                log_url: deploymentUrl,
+                description: status === 'success' ? 'Deployment successful' : 'Deployment failed'
+              });
+            }
 
   # Health check job
   health-check:
@@ -96,7 +140,7 @@ jobs:
           sleep 30
           
           # Health check URL (adjust as needed)
-          HEALTH_URL="${{ steps.deploy.outputs.DEPLOYMENT_URL }}/api/health"
+          HEALTH_URL="${{ needs.deploy.outputs.deployment_url }}/api/health"
           
           # Perform health check (if you have a health endpoint)
           if curl -f "$HEALTH_URL" > /dev/null 2>&1; then
