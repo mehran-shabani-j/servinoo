@@ -1,7 +1,7 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "buildCommand": "pnpm run build",
+  "devCommand": "pnpm run dev",
+  "installCommand": "corepack enable && corepack prepare pnpm@9 --activate && pnpm install --frozen-lockfile",
   "framework": "nextjs",
   "regions": ["fra1"],
   "functions": {
