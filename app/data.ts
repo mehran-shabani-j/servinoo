@@ -345,7 +345,7 @@ export async function getProvidersByService(serviceId: string) {
 import { createClient } from "@/lib/supabase/server"
 
 export async function getProfile(): Promise<Profile | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
