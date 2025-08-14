@@ -1,5 +1,5 @@
-import { Suspense } from "react"
-import { searchProviders, getServices, getLocations } from "@/app/data"
+import { Suspense, use } from "react"
+import { searchProviders, getServices, getLocations, type ProviderSearchResult } from "@/app/data"
 import { SearchFilters } from "@/components/search-filters"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,15 +9,17 @@ import Link from "next/link"
 import Image from "next/image"
 
 type SearchPageProps = {
-  searchParams: {
+  searchParams: Promise<{
     serviceId?: string
     locationId?: string
     query?: string
-  }
+  }>
 }
 
-async function SearchResults({ searchParams }: SearchPageProps) {
-  const providers = await searchProviders(searchParams.serviceId, searchParams.locationId, searchParams.query)
+
+function SearchResults({ providersPromise }: { providersPromise: Promise<ProviderSearchResult[]> }) {
+  const providers = use(providersPromise)
+
 
   if (providers.length === 0) {
     return (
@@ -89,7 +91,17 @@ async function SearchResults({ searchParams }: SearchPageProps) {
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
+
+  const params = use(searchParams)
+
+
+
   const [services, locations] = await Promise.all([getServices(), getLocations()])
+  const providersPromise = searchProviders(
+    params.serviceId,
+    params.locationId,
+    params.query,
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,10 +111,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <SearchFilters
             services={services}
             locations={locations}
-            initialServiceId={searchParams.serviceId}
-            initialLocationId={searchParams.locationId}
-            initialQuery={searchParams.query}
-          />
+
+            initialServiceId={params.serviceId}
+            initialLocationId={params.locationId}
+            initialQuery={params.query}
+            />
         </div>
 
         <Suspense
@@ -131,7 +144,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             </div>
           }
         >
-          <SearchResults searchParams={searchParams} />
+
+          <SearchResults providersPromise={providersPromise} />
         </Suspense>
       </div>
     </div>

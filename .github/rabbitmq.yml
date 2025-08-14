@@ -1,0 +1,6 @@
+# Placeholder configuration for RabbitMQ-related bot/actions if used in the repo.
+# Update with real credentials/secrets in repository settings and reference via secrets.
+rabbitmq:
+  host: ${{ secrets.RABBITMQ_HOST }}
+  username: ${{ secrets.RABBITMQ_USERNAME }}
+  password: ${{ secrets.RABBITMQ_PASSWORD }}

@@ -1,0 +1,65 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  # Enable version updates for npm (Node.js)
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "owner/maintainer"
+    assignees:
+      - "owner/maintainer"
+    commit-message:
+      prefix: "⬆️"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+    # Group dependencies to reduce PR noise
+    groups:
+      next-dependencies:
+        patterns:
+          - "next*"
+          - "@next/*"
+      react-dependencies:
+        patterns:
+          - "react*"
+          - "@types/react*"
+      radix-dependencies:
+        patterns:
+          - "@radix-ui/*"
+      supabase-dependencies:
+        patterns:
+          - "@supabase/*"
+      dev-dependencies:
+        dependency-type: "development"
+        patterns:
+          - "eslint*"
+          - "@types/*"
+          - "typescript"
+          - "tailwindcss*"
+          - "postcss*"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    commit-message:
+      prefix: "🔧"
+      include: "scope"
+    labels:
+      - "github-actions"
+      - "automated"
+

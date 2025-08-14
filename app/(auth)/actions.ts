@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
 export async function login(formData: FormData) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const data = {
     phone: formData.get("phone") as string,
@@ -22,7 +22,7 @@ export async function login(formData: FormData) {
 }
 
 export async function verifyOtp(formData: FormData) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const data = {
     phone: formData.get("phone") as string,
