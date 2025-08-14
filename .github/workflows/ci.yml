@@ -222,6 +222,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [changes, lint, typecheck, build]
     if: always()
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     steps:
       - name: Check all jobs status
         run: |
@@ -236,7 +240,7 @@ jobs:
           fi
 
       - name: Add PR comment on success
-        if: github.event_name == 'pull_request' && success()
+        if: github.event_name == 'pull_request' && success() && !github.event.pull_request.head.repo.fork
         uses: actions/github-script@v6
         with:
           script: |

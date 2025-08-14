@@ -22,6 +22,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment || 'production' }}
+    permissions:
+      contents: read
+      deployments: write
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,9 +60,10 @@ jobs:
           echo "DEPLOYMENT_URL=$(cat deployment_url.txt)" >> $GITHUB_OUTPUT
 
       - name: Add deployment comment to PR
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const deploymentUrl = '${{ steps.deploy.outputs.DEPLOYMENT_URL }}';
             github.rest.issues.createComment({
@@ -71,6 +77,7 @@ jobs:
         if: always()
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const deploymentUrl = '${{ steps.deploy.outputs.DEPLOYMENT_URL }}';
             const status = '${{ job.status }}' === 'success' ? 'success' : 'failure';

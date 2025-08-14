@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      deployments: write
       pull-requests: read
 
     steps:
@@ -115,6 +116,7 @@ jobs:
       - name: Create deployment
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const deployment = await github.rest.repos.createDeployment({
               owner: context.repo.owner,
