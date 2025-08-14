@@ -9,14 +9,14 @@ import Link from "next/link"
 import Image from "next/image"
 
 type SearchPageProps = {
-  searchParams: {
+  searchParams: Promise<{
     serviceId?: string
     locationId?: string
     query?: string
-  }
+  }>
 }
 
-async function SearchResults({ searchParams }: SearchPageProps) {
+async function SearchResults({ searchParams }: { searchParams: { serviceId?: string; locationId?: string; query?: string } }) {
   const providers = await searchProviders(searchParams.serviceId, searchParams.locationId, searchParams.query)
 
   if (providers.length === 0) {
@@ -89,6 +89,7 @@ async function SearchResults({ searchParams }: SearchPageProps) {
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const resolvedParams = await searchParams
   const [services, locations] = await Promise.all([getServices(), getLocations()])
 
   return (
@@ -99,9 +100,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <SearchFilters
             services={services}
             locations={locations}
-            initialServiceId={searchParams.serviceId}
-            initialLocationId={searchParams.locationId}
-            initialQuery={searchParams.query}
+            initialServiceId={resolvedParams.serviceId}
+            initialLocationId={resolvedParams.locationId}
+            initialQuery={resolvedParams.query}
           />
         </div>
 
@@ -131,7 +132,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             </div>
           }
         >
-          <SearchResults searchParams={searchParams} />
+          {/* @ts-expect-error Async Server Component */}
+          <SearchResults searchParams={resolvedParams} />
         </Suspense>
       </div>
     </div>

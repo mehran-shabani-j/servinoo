@@ -1,0 +1,61 @@
+# Configuration for automatic labeling based on file changes
+
+'area/frontend':
+  - 'app/**'
+  - 'components/**'
+  - 'styles/**'
+  - 'public/**'
+
+'area/ui':
+  - 'components/ui/**'
+
+'area/auth':
+  - 'app/(auth)/**'
+  - 'lib/supabase/**'
+
+'area/dashboard':
+  - 'app/(dashboard)/**'
+
+'area/search':
+  - 'app/search/**'
+  - 'components/search-filters.tsx'
+  - 'components/landing-search-form.tsx'
+
+'area/providers':
+  - 'app/providers/**'
+
+'area/config':
+  - '*.config.*'
+  - 'tsconfig.json'
+  - '.eslintrc.*'
+  - 'package.json'
+  - 'pnpm-lock.yaml'
+
+'area/docs':
+  - '*.md'
+  - 'docs/**'
+
+'area/ci':
+  - '.github/**'
+
+'area/types':
+  - '**/*.d.ts'
+  - 'types/**'
+
+'area/lib':
+  - 'lib/**'
+
+'area/scripts':
+  - 'scripts/**'
+
+'area/db':
+  - 'scripts/*.sql'
+  - '**/migrations/**'
+
+'dependencies':
+  - 'package.json'
+  - 'pnpm-lock.yaml'
+
+'breaking-change':
+  - 'BREAKING.md'
+  - 'CHANGELOG.md'

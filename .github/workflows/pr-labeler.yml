@@ -1,0 +1,134 @@
+name: 🏷️ PR Auto Labeler
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auto-label based on files changed
+        uses: actions/labeler@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+
+      - name: Label based on PR size
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            let additions = 0;
+            let deletions = 0;
+            files.forEach(file => {
+              additions += file.additions;
+              deletions += file.deletions;
+            });
+
+            const totalChanges = additions + deletions;
+            let sizeLabel = '';
+
+            if (totalChanges < 10) {
+              sizeLabel = 'size/XS';
+            } else if (totalChanges < 50) {
+              sizeLabel = 'size/S';
+            } else if (totalChanges < 200) {
+              sizeLabel = 'size/M';
+            } else if (totalChanges < 500) {
+              sizeLabel = 'size/L';
+            } else {
+              sizeLabel = 'size/XL';
+            }
+
+            // Remove existing size labels
+            const existingLabels = pr.labels.map(label => label.name);
+            const sizeLabels = existingLabels.filter(label => label.startsWith('size/'));
+            
+            for (const label of sizeLabels) {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name: label
+              });
+            }
+
+            // Add new size label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: [sizeLabel]
+            });
+
+      - name: Label based on PR title
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const title = pr.title.toLowerCase();
+            const labels = [];
+
+            // Type-based labels
+            if (title.includes('fix') || title.includes('bug')) {
+              labels.push('type/bug');
+            }
+            if (title.includes('feat') || title.includes('feature')) {
+              labels.push('type/feature');
+            }
+            if (title.includes('docs') || title.includes('documentation')) {
+              labels.push('type/documentation');
+            }
+            if (title.includes('refactor')) {
+              labels.push('type/refactor');
+            }
+            if (title.includes('test')) {
+              labels.push('type/test');
+            }
+            if (title.includes('ci') || title.includes('build')) {
+              labels.push('type/ci');
+            }
+            if (title.includes('perf') || title.includes('performance')) {
+              labels.push('type/performance');
+            }
+
+            // Priority labels
+            if (title.includes('urgent') || title.includes('critical')) {
+              labels.push('priority/high');
+            }
+            if (title.includes('breaking')) {
+              labels.push('breaking-change');
+            }
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labels
+              });
+            }

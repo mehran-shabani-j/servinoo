@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Briefcase, MapPin, MessageSquare, Phone, Star } from "lucide-react"
 import { notFound } from "next/navigation"
 
-export default async function ProviderProfilePage({ params }: { params: { id: string } }) {
-  const data = await getProviderProfile(params.id)
+export default async function ProviderProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params
+  const data = await getProviderProfile(resolvedParams.id)
 
   if (!data || !data.profile) {
     notFound()
