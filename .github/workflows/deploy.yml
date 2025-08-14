@@ -41,7 +41,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: '9'
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
