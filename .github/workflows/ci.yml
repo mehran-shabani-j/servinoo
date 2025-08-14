@@ -9,7 +9,7 @@ on:
 
 env:
   NODE_VERSION: '18'
-  PNPM_VERSION: '8'
+  PNPM_VERSION: '9'
 
 jobs:
   # Job to check for changes in specific directories
@@ -92,7 +92,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-        run: pnpm build
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
