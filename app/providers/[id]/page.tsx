@@ -8,8 +8,10 @@ import { notFound } from "next/navigation"
 import { use } from "react"
 
 export default async function ProviderProfilePage({ params }: { params: Promise<{ id: string }> }) {
+
   const { id } = use(params)
   const data = await getProviderProfile(id)
+
 
   if (!data || !data.profile) {
     notFound()

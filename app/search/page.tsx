@@ -16,8 +16,10 @@ type SearchPageProps = {
   }>
 }
 
+
 function SearchResults({ providersPromise }: { providersPromise: Promise<ProviderSearchResult[]> }) {
   const providers = use(providersPromise)
+
 
   if (providers.length === 0) {
     return (
@@ -89,7 +91,11 @@ function SearchResults({ providersPromise }: { providersPromise: Promise<Provide
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
+
   const params = use(searchParams)
+
+
+
   const [services, locations] = await Promise.all([getServices(), getLocations()])
   const providersPromise = searchProviders(
     params.serviceId,
@@ -105,10 +111,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <SearchFilters
             services={services}
             locations={locations}
+
             initialServiceId={params.serviceId}
             initialLocationId={params.locationId}
             initialQuery={params.query}
-          />
+            />
         </div>
 
         <Suspense
@@ -137,6 +144,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             </div>
           }
         >
+
           <SearchResults providersPromise={providersPromise} />
         </Suspense>
       </div>
