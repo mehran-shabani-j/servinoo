@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 interface ResponsiveContainerProps {
   children: React.ReactNode
   className?: string
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "full"
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "7xl" | "full"
   padding?: "none" | "sm" | "md" | "lg"
   center?: boolean
 }
@@ -16,12 +16,13 @@ export function ResponsiveContainer({
   padding = "md",
   center = true,
 }: ResponsiveContainerProps) {
-  const maxWidthClasses = {
+  const maxWidthClasses: Record<NonNullable<ResponsiveContainerProps["maxWidth"]>, string> = {
     sm: "max-w-sm",
     md: "max-w-md", 
     lg: "max-w-lg",
     xl: "max-w-xl",
     "2xl": "max-w-2xl",
+    "7xl": "max-w-7xl",
     full: "max-w-full",
   }
 
@@ -36,7 +37,7 @@ export function ResponsiveContainer({
     <div
       className={cn(
         "w-full",
-        maxWidthClasses[maxWidth] || "max-w-7xl",
+        maxWidthClasses[maxWidth],
         paddingClasses[padding],
         center && "mx-auto",
         className
@@ -52,10 +53,10 @@ interface ResponsiveGridProps {
   children: React.ReactNode
   className?: string
   cols?: {
-    sm?: number
-    md?: number
-    lg?: number
-    xl?: number
+    sm?: 1 | 2 | 3 | 4 | 5 | 6
+    md?: 1 | 2 | 3 | 4 | 5 | 6
+    lg?: 1 | 2 | 3 | 4 | 5 | 6
+    xl?: 1 | 2 | 3 | 4 | 5 | 6
   }
   gap?: "sm" | "md" | "lg"
 }
@@ -72,7 +73,7 @@ export function ResponsiveGrid({
     lg: "gap-8",
   }
 
-  const gridCols = {
+  const gridCols: Record<1 | 2 | 3 | 4 | 5 | 6, string> = {
     1: "grid-cols-1",
     2: "grid-cols-2", 
     3: "grid-cols-3",
@@ -114,7 +115,7 @@ export function ResponsiveText({
   className,
   responsive = false,
 }: ResponsiveTextProps) {
-  const sizeClasses = {
+  const sizeClasses: Record<NonNullable<ResponsiveTextProps["size"]>, string> = {
     xs: "text-xs",
     sm: "text-sm",
     base: "text-base",
@@ -127,23 +128,20 @@ export function ResponsiveText({
     "6xl": "text-6xl",
   }
 
-  const responsiveClasses = responsive
-    ? {
-        "2xl": "text-lg md:text-xl lg:text-2xl",
-        "3xl": "text-xl md:text-2xl lg:text-3xl",
-        "4xl": "text-2xl md:text-3xl lg:text-4xl",
-        "5xl": "text-3xl md:text-4xl lg:text-5xl",
-        "6xl": "text-4xl md:text-5xl lg:text-6xl",
-      }
-    : {}
+  const responsiveMap: Record<"2xl" | "3xl" | "4xl" | "5xl" | "6xl", string> = {
+    "2xl": "text-lg md:text-xl lg:text-2xl",
+    "3xl": "text-xl md:text-2xl lg:text-3xl",
+    "4xl": "text-2xl md:text-3xl lg:text-4xl",
+    "5xl": "text-3xl md:text-4xl lg:text-5xl",
+    "6xl": "text-4xl md:text-5xl lg:text-6xl",
+  }
+
+  const computedClass = responsive && size in responsiveMap
+    ? responsiveMap[size as keyof typeof responsiveMap]
+    : sizeClasses[size]
 
   return (
-    <Component
-      className={cn(
-        responsive && responsiveClasses[size] ? responsiveClasses[size] : sizeClasses[size],
-        className
-      )}
-    >
+    <Component className={cn(computedClass, className)}>
       {children}
     </Component>
   )

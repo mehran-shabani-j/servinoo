@@ -92,7 +92,7 @@ function SearchResults({ providersPromise }: { providersPromise: Promise<Provide
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
 
-  const params = use(searchParams)
+  const params = await searchParams
 
 
 

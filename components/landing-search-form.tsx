@@ -91,7 +91,7 @@ export function LandingSearchForm({ services, locations }: LandingSearchFormProp
                     value={String(location.id)}
                     className="hover:bg-primary/5 focus:bg-primary/10"
                   >
-                    {location.name}
+                    {location.city}
                   </SelectItem>
                 ))}
               </SelectContent>

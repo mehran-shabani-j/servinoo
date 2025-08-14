@@ -2,6 +2,12 @@
 
 import { useEffect, useCallback } from "react"
 
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void
+  }
+}
+
 interface PerformanceMetric {
   name: string
   value: number
@@ -38,20 +44,22 @@ export function usePerformance() {
   const measurePageLoad = useCallback(() => {
     if (typeof window === 'undefined') return
 
-    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
+    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
     
     if (navigation) {
+      const navStart = (navigation as any).navigationStart ?? navigation.startTime ?? 0
+
       // DOM Content Loaded
       reportMetric({
         name: 'DOM_CONTENT_LOADED',
-        value: navigation.domContentLoadedEventEnd - navigation.navigationStart,
+        value: navigation.domContentLoadedEventEnd - navStart,
         timestamp: Date.now(),
       })
 
       // Load Complete
       reportMetric({
         name: 'LOAD_COMPLETE',
-        value: navigation.loadEventEnd - navigation.navigationStart,
+        value: navigation.loadEventEnd - navStart,
         timestamp: Date.now(),
       })
 
