@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -14,7 +14,6 @@ export const metadata: Metadata = {
   generator: 'v0.dev',
   keywords: ['خدمات', 'ایران', 'متخصص', 'تعمیرات', 'آموزش', 'پزشکی'],
   authors: [{ name: 'سرویسو' }],
-  viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
   openGraph: {
     title: "سرویسو - پلتفرم ارائه خدمات",
@@ -22,6 +21,11 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fa_IR',
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({

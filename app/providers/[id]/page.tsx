@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Briefcase, MapPin, MessageSquare, Phone, Star } from "lucide-react"
 import { notFound } from "next/navigation"
-import { use } from "react"
 
 export default async function ProviderProfilePage({ params }: { params: Promise<{ id: string }> }) {
 
-  const { id } = use(params)
+  const { id } = await params
   const data = await getProviderProfile(id)
 
 

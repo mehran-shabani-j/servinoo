@@ -32,18 +32,26 @@ jobs:
         languages: ${{ matrix.language }}
         queries: security-extended,security-and-quality
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-
     - name: Setup pnpm
       uses: pnpm/action-setup@v2
       with:
         version: '9'
 
+    - name: Corepack fallback for pnpm
+      run: corepack enable && corepack prepare pnpm@9 --activate
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'pnpm'
+        cache-dependency-path: '**/pnpm-lock.yaml'
+
+    - name: Verify pnpm
+      run: pnpm --version
+
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      run: pnpm install --no-frozen-lockfile
 
     - name: Build application
       run: pnpm run build
