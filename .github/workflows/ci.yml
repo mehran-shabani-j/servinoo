@@ -87,10 +87,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [changes, install]
     if: needs.changes.outputs.src == 'true'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+        run: pnpm build
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -247,3 +249,4 @@ jobs:
               repo: context.repo.repo,
               body: '✅ All CI checks passed! Ready for review.'
             })
+

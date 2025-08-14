@@ -6,6 +6,7 @@
 version: 2
 updates:
   # Enable version updates for npm (Node.js)
+
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -61,3 +62,4 @@ updates:
     labels:
       - "github-actions"
       - "automated"
+

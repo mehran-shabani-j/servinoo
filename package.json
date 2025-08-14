@@ -15,7 +15,9 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "pnpm -s type-check && pnpm -s build",
+    "ci": "pnpm -s type-check && pnpm -s lint && pnpm -s build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
