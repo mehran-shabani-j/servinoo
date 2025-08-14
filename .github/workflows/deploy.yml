@@ -11,7 +11,7 @@ on:
         default: 'production'
         type: choice
         options:
-          - production
+          
           - preview
 
 env:
