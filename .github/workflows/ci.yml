@@ -20,7 +20,7 @@ jobs:
       deps: ${{ steps.changes.outputs.deps }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check for changes
         uses: dorny/paths-filter@v2
@@ -47,7 +47,7 @@ jobs:
     if: needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -80,7 +80,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -121,7 +121,7 @@ jobs:
     if: needs.changes.outputs.src == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -154,7 +154,7 @@ jobs:
     if: needs.changes.outputs.src == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -197,7 +197,7 @@ jobs:
     if: needs.changes.outputs.deps == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
