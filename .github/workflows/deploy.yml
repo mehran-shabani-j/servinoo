@@ -36,7 +36,7 @@ jobs:
 
       - name: Create GitHub Deployment
         id: create_deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -91,7 +91,7 @@ jobs:
 
       - name: Add deployment comment to PR
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -105,7 +105,7 @@ jobs:
 
       - name: Update deployment status
         if: always()
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -153,7 +153,7 @@ jobs:
 
       - name: Notify deployment success
         if: success()
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             if (context.eventName === 'push' && context.ref === 'refs/heads/main') {
